@@ -60,11 +60,14 @@ const FormRenderer = () => {
       setSubmitting(true);
       
       const response = await api.post(`/api/responses/${id}`, {
-        answers: Object.keys(answers).map(index => ({
-          questionId: form.questions[index]._id,
-          questionType: form.questions[index].type,
-          answer: answers[index]
-        }))
+        answers: Object.keys(answers).map(index => {
+          const q = form.questions?.[index];
+          return {
+            questionId: q?._id,
+            questionType: q?.type,
+            answer: answers[index]
+          };
+        })
       });
 
       if (response.status === 201) {
@@ -104,10 +107,12 @@ const FormRenderer = () => {
       const { questionIndex: sourceQuestionIndex, itemIndex } = JSON.parse(data);
       
       if (sourceQuestionIndex === questionIndex) {
-        const question = form.questions[questionIndex];
-        const item = question.items[itemIndex];
-        const category = question.categories[categoryIndex];
+        const question = form.questions?.[questionIndex] || {};
+        const item = (question.items || [])[itemIndex];
+        const category = (question.categories || [])[categoryIndex];
         
+        if (!item || !category) return;
+
         // Check if item is already categorized
         const currentAnswers = answers[questionIndex]?.items || [];
         const isAlreadyCategorized = currentAnswers.some(answer => answer.text === item.text);

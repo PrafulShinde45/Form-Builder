@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Routes
+// API Routes
 app.use('/api/forms', formRoutes);
 app.use('/api/responses', responseRoutes);
 
@@ -66,14 +66,24 @@ mongoose.connection.on('reconnected', () => {
   console.log('MongoDB reconnected');
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
+// Serve React build in production (single-service deployment)
+const clientBuildPath = path.join(__dirname, '../client/build');
+app.use(express.static(clientBuildPath));
+
+// SPA fallback for non-API routes
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api/')) return next();
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
+});
+
+// Error handling middleware (API only)
+app.use('/api/*', (err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
+// 404 handler for unknown API routes
+app.use('/api/*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 

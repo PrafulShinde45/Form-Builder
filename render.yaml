@@ -6,46 +6,23 @@
 # - After first deploy finishes, set the missing env vars marked with `sync: false`.
 
 services:
-  # ==========================
-  # Backend API (Express/Node)
-  # ==========================
+  # ================================================
+  # Single Web Service: API + serves React build
+  # ================================================
   - type: web
-    name: form-builder-api
+    name: form-builder
     env: node
     autoDeploy: true
-    buildCommand: npm ci
+    buildCommand: npm ci && cd client && npm ci && npm run build
     startCommand: node server/index.js
-    # Render injects PORT automatically; server must listen on process.env.PORT (code already does)
     envVars:
-      # REQUIRED: Set your MongoDB Atlas connection string in the Render dashboard
       - key: MONGODB_URI
         sync: false
-      # Optional but recommended
       - key: NODE_ENV
         value: production
-      # Optional: restrict CORS to your client URL after the client is deployed
-      # Example: https://form-builder-client.onrender.com
-      - key: CORS_ORIGIN
-        sync: false
-
-  # =====================
-  # Frontend (React/CRA)
-  # =====================
-  - type: static
-    name: form-builder-client
-    autoDeploy: true
-    buildCommand: cd client && npm ci && npm run build
-    staticPublishPath: client/build
-    envVars:
-      # REQUIRED: Set to the deployed API URL shown after the API service is live.
-      # Example: https://form-builder-api.onrender.com
-      - key: REACT_APP_API_BASE_URL
-        sync: false
 
 # Notes:
-# - This blueprint deploys two services: a Node API and a Static Site.
+# - This blueprint deploys a single web service. The server serves /api/* and
+#   also serves the React app from client/build for all non-API routes.
 # - Set env vars with `sync: false` in the Render dashboard after creation.
-# - If you prefer a single service that serves the React build from Express,
-#   remove the static site service above and update `server/index.js` to serve
-#   client/build as static assets before the 404 handler.
 

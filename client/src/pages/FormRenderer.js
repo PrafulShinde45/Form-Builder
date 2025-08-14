@@ -154,7 +154,7 @@ const FormRenderer = () => {
   const renderTextQuestion = (question, questionIndex) => {
     return (
       <div className="p-4 bg-white border rounded-lg shadow-sm">
-        <p className="text-gray-700">{question.text}</p>
+        <p className="text-gray-700">{question?.text || ''}</p>
       </div>
     );
   };
@@ -200,9 +200,9 @@ const FormRenderer = () => {
               id={`items-${questionIndex}`}
               className="min-h-[200px] border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50"
             >
-              {question.items.map((item, itemIndex) => {
+              {(question.items || []).map((item, itemIndex) => {
                 // Check if this item has already been categorized
-                const isAlreadyCategorized = questionAnswers.some(answer => answer.text === item.text);
+                const isAlreadyCategorized = questionAnswers.some(answer => answer.text === item?.text);
                 
                 // Only show items that haven't been categorized yet
                 if (!isAlreadyCategorized) {
@@ -218,7 +218,7 @@ const FormRenderer = () => {
                           : ''
                       }`}
                     >
-                      {item.text}
+                       {item?.text}
                     </div>
                   );
                 }
@@ -230,25 +230,25 @@ const FormRenderer = () => {
           {/* Categories */}
           <div className="space-y-3">
             <h4 className="font-medium text-gray-900">Categories:</h4>
-            {question.categories.map((category, catIndex) => (
+            {(question.categories || []).map((category, catIndex) => (
               <div
                 key={catIndex}
                 id={`category-${questionIndex}-${catIndex}`}
                 className={`min-h-[100px] border-2 border-dashed rounded-lg p-3 transition-colors ${
                   draggedItem && draggedItem.questionIndex === questionIndex ? 'border-blue-400 bg-blue-50' : ''
                 }`}
-                style={{ borderColor: draggedItem && draggedItem.questionIndex === questionIndex ? '#3B82F6' : category.color }}
+                style={{ borderColor: draggedItem && draggedItem.questionIndex === questionIndex ? '#3B82F6' : (category?.color || '#e5e7eb') }}
                 onDragOver={handleCategoryDragOver}
                 onDrop={(e) => handleCategoryDrop(e, questionIndex, catIndex)}
               >
                 <div 
                   className="font-medium mb-2 text-center"
-                  style={{ color: category.color }}
+                  style={{ color: category?.color || '#6b7280' }}
                 >
-                  {category.name}
+                  {category?.name}
                 </div>
                 {questionAnswers
-                  .filter(answer => answer.category === category.name)
+                  .filter(answer => answer.category === category?.name)
                   .map((answer, answerIndex) => (
                     <div
                       key={answerIndex}
@@ -287,7 +287,7 @@ const FormRenderer = () => {
     
     // Function to render text with blanks as drop zones
     const renderTextWithBlanks = () => {
-      let parts = question.text.split('_____');
+      let parts = (question?.text || '').split('_____');
       let result = [];
       
       parts.forEach((part, index) => {
@@ -297,7 +297,7 @@ const FormRenderer = () => {
         // Add the blank drop zone if not the last part
         if (index < parts.length - 1) {
           const blankIndex = index;
-          const blank = question.blanks[blankIndex];
+          const blank = (question?.blanks || [])[blankIndex];
           const currentAnswer = questionAnswers[blankIndex]?.answer || '';
           
           result.push(
